@@ -22,6 +22,7 @@ import itertools
 import wave
 import re
 import select
+import glob
 
 try:
     # Python 3
@@ -198,20 +199,26 @@ class Ripper(threading.Thread):
             if isinstance(uri, list):
                 return uri
             else:
+                if args.market is None:
+                    market = "any"
+                elif isinstance(args.market, basestring):
+                    market = args.market
+                else:
+                    market = args.market[0]
                 if (args.filter_albums is not None and
                         uri.startswith("spotify:artist:")):
                     if isinstance(args.filter_albums, basestring):
                         filter = args.filter_albums
                     else:
-                        filter = args.filter_albums[0]
+                        filter = args.filter_albums.first
 
-                    album_uris = self.web.get_albums_with_filter(uri, filter)
+                    album_uris = self.web.get_albums_with_filter(uri, filter, market)
                     return itertools.chain(
                         *[self.load_link(album_uri) for
                           album_uri in album_uris])
                 elif (args.exclude_appears_on and
                         uri.startswith("spotify:artist:")):
-                    album_uris = self.web.get_albums_with_filter(uri, "album,single,compilation")
+                    album_uris = self.web.get_albums_with_filter(uri, "album,single,compilation", market)
                     return itertools.chain(
                         *[self.load_link(album_uri) for
                           album_uri in album_uris])
@@ -634,6 +641,13 @@ class Ripper(threading.Thread):
         audio_path = os.path.dirname(audio_file)
         if not path_exists(audio_path):
             os.makedirs(enc_str(audio_path))
+        elif args.match_similar_track_name and not os.path.exists(audio_file):
+            newfilename = os.path.basename(audio_file)
+            extension = os.path.splitext(newfilename)[1]
+            globpattern = os.path.join(audio_path, newfilename.split(" ")[0] + " *" + extension)
+            candidatefiles = glob.glob(globpattern)
+            if len(candidatefiles) == 1:
+                audio_file = candidatefiles[0]
 
         self.track_path_cache[track.link.uri] = audio_file
         return audio_file

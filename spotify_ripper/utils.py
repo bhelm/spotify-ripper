@@ -419,8 +419,13 @@ def is_partial(audio_file, track):
         return None
 
     audio_file_dur = audio_file_duration(audio_file)
+
+    if (audio_file_dur is None or
+           (track.duration/1000) > math.ceil(audio_file_dur)):
+    # there is a small difference between the track and the file duration,
+    # ceil the file duration up to be sure.
     return (audio_file_dur is None or
-        track.duration > (audio_file_dur * 1000))
+           (track.duration/1000) > math.ceil(audio_file_dur)*1.01)
 
 
 # borrowed from eyeD3

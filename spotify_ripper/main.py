@@ -37,7 +37,7 @@ def load_config(defaults):
             to_array_options = [
                 "comment", "cover_file", "cover_embed", "directory", "fail_log", "format",
                 "genres", "grouping", "key", "user", "password", "log", "filter_albums"
-                "replace", "upper_words"]
+                "replace", "upper_words", "market", "match_similar_track_name"]
 
             # coerce boolean and none types
             config_items_new = {}
@@ -320,6 +320,15 @@ def main(prog_args=sys.argv[1:]):
     parser.add_argument(
         '--upper-words', action='store_true',
         help='Convert make all words of the filenames start with captial letters')
+    parser.add_argument(
+        '--market', nargs=1,
+        help='The Country (iso2 country code) the albums get fetched from the artists page. '
+             'if you not set this, you may get duplicate albums. [Default=any]')
+    parser.add_argument(
+        '--match-similar-track-name', action='store_true',
+        help='Avoid ripping a new file if one that starts with the same name '
+             'exits. currently compares until the first space, so if your filename'
+             'starts with a track number, this will skip existing tracks.')
     parser.add_argument(
         'uri', nargs="+",
         help='One or more Spotify URI(s) (either URI, a file of URIs or a '
